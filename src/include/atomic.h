@@ -1,6 +1,6 @@
 /*************************************************************************
  *
- * Copyright (C) 2018-2020 Ruilin Peng (Nick) <pymumu@gmail.com>.
+ * Copyright (C) 2018-2024 Ruilin Peng (Nick) <pymumu@gmail.com>.
  *
  * smartdns is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,11 +20,16 @@
 #ifndef _GENERIC_ATOMIC_H
 #define _GENERIC_ATOMIC_H
 
+#define ACCESS_ONCE(x) (*(volatile typeof(x) *)&(x))
+
+#define READ_ONCE(x) \
+({ typeof(x) ___x = ACCESS_ONCE(x); ___x; })
+
 /**
  * Atomic type.
  */
 typedef struct {
-	int counter;
+	long counter;
 } atomic_t;
 
 #define ATOMIC_INIT(i)  { (i) }
@@ -35,21 +40,27 @@ typedef struct {
  *
  * Atomically reads the value of @v.
  */
-#define atomic_read(v) ((v)->counter)
+static inline long atomic_read(const atomic_t *v)
+{
+	return READ_ONCE((v)->counter);
+}
 
 /**
  * Set atomic variable
  * @param v pointer of type atomic_t
  * @param i required value
  */
-#define atomic_set(v,i) (((v)->counter) = (i))
+static inline void atomic_set(atomic_t *v, long i)
+{
+    v->counter = i;
+}
 
 /**
  * Add to the atomic variable
  * @param i integer value to add
  * @param v pointer of type atomic_t
  */
-static inline void atomic_add( int i, atomic_t *v )
+static inline void atomic_add( long i, atomic_t *v )
 {
 	(void)__sync_add_and_fetch(&v->counter, i);
 }
@@ -61,7 +72,7 @@ static inline void atomic_add( int i, atomic_t *v )
  *
  * Atomically subtracts @i from @v.
  */
-static inline void atomic_sub( int i, atomic_t *v )
+static inline void atomic_sub( long i, atomic_t *v )
 {
 	(void)__sync_sub_and_fetch(&v->counter, i);
 }
@@ -75,7 +86,7 @@ static inline void atomic_sub( int i, atomic_t *v )
  * true if the result is zero, or false for all
  * other cases.
  */
-static inline int atomic_sub_and_test( int i, atomic_t *v )
+static inline long atomic_sub_and_test( long i, atomic_t *v )
 {
 	return !(__sync_sub_and_fetch(&v->counter, i));
 }
@@ -109,7 +120,7 @@ static inline void atomic_dec( atomic_t *v )
  *
  * Atomically increments @v by 1.
  */
-static inline int atomic_inc_return( atomic_t *v )
+static inline long atomic_inc_return( atomic_t *v )
 {
 	return __sync_add_and_fetch(&v->counter, 1);
 }
@@ -121,7 +132,7 @@ static inline int atomic_inc_return( atomic_t *v )
  * Atomically decrements @v by 1.  Note that the guaranteed
  * useful range of an atomic_t is only 24 bits.
  */
-static inline int atomic_dec_return( atomic_t *v )
+static inline long atomic_dec_return( atomic_t *v )
 {
 	return __sync_sub_and_fetch(&v->counter, 1);
 }
@@ -134,7 +145,7 @@ static inline int atomic_dec_return( atomic_t *v )
  * returns true if the result is 0, or false for all other
  * cases.
  */
-static inline int atomic_dec_and_test( atomic_t *v )
+static inline long atomic_dec_and_test( atomic_t *v )
 {
 	return !(__sync_sub_and_fetch(&v->counter, 1));
 }
@@ -147,7 +158,7 @@ static inline int atomic_dec_and_test( atomic_t *v )
  * and returns true if the result is zero, or false for all
  * other cases.
  */
-static inline int atomic_inc_and_test( atomic_t *v )
+static inline long atomic_inc_and_test( atomic_t *v )
 {
 	return !(__sync_add_and_fetch(&v->counter, 1));
 }
@@ -161,7 +172,7 @@ static inline int atomic_inc_and_test( atomic_t *v )
  * if the result is negative, or false when
  * result is greater than or equal to zero.
  */
-static inline int atomic_add_negative( int i, atomic_t *v )
+static inline long atomic_add_negative( long i, atomic_t *v )
 {
 	return (__sync_add_and_fetch(&v->counter, i) < 0);
 }

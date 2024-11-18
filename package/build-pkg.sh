@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (C) 2018-2019 Nick Peng (pymumu@gmail.com)
+# Copyright (C) 2018-2024 Nick Peng (pymumu@gmail.com)
 
 CURR_DIR=$(cd $(dirname $0);pwd)
 VER="`date +"1.%Y.%m.%d-%H%M"`"
@@ -81,7 +81,7 @@ build()
 
 main()
 {
-	OPTS=`getopt -o o:h --long arch:,filearch:,ver:,platform:,cross-tool:,static,only-package,outputdir: \
+	OPTS=`getopt -o o:h --long arch:,filearch:,ver:,platform:,cross-tool:,with-nftables,static,only-package,outputdir: \
 		-n  "" -- "$@"`
 
 	if [ "$#" -le "1" ]; then
